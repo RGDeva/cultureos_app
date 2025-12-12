@@ -11,8 +11,6 @@ import { TerminalText } from "@/components/ui/terminal-text"
 import { Profile } from "@/types/profile"
 import { needsOnboarding } from "@/lib/profileStore"
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 // Loading component
 const LoadingBox = () => (

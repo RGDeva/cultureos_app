@@ -16,14 +16,13 @@ model User {
   walletAddress   String?  @unique
   displayName     String
   bio             String?
-  socials         String?  @default("{}")  // Stored as JSON string
+  socials         String?  @default("{}")
   artistAccountId String?  @unique
-  classification  String?  // e.g., 'producer', 'engineer', 'studio', etc.
+  classification  String?
   onboarded       Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Publishing & Earnings relations
   works                Work[]
   splitParties         SplitParty[]
   balances             Balance[]
@@ -35,49 +34,14 @@ model User {
   @@index([artistAccountId], name: "user_artist_account_id_idx")
 }
 
-// Publishing & Earnings enums
-enum WorkStatus {
-  IDEA
-  IN_PROGRESS
-  RELEASED
-  CATALOGED
-}
-
-enum EarningType {
-  MASTER
-  PUBLISHING
-}
-
-enum AdvanceStatus {
-  ACTIVE
-  RECOUPED
-  CANCELLED
-}
-
-enum PayoutMethod {
-  BANK
-  WALLET
-  BOTH
-}
-
-enum PayoutCadence {
-  DAILY
-  WEEKLY
-  MONTHLY
-}
-
-// Publishing & Earnings models
 model Work {
   id              String        @id @default(cuid())
-  title           String
-  status          WorkStatus    @default(IDEA)
-
   ownerId         String
   owner           User          @relation(fields: [ownerId], references: [id])
-
-  // Link down to Vault assets (we already have VaultAsset)
-  vaultAssetIds   String        @default("[]")  // JSON array of VaultAsset ids
-
+  title           String
+  artistName      String?
+  status          String        @default("IDEA")
+  vaultAssetIds   String        @default("[]")
   isrc            String?       @unique
   iswc            String?
   releaseDate     DateTime?
@@ -100,7 +64,6 @@ model SplitSheet {
   id        String        @id @default(cuid())
   workId    String        @unique
   work      Work          @relation(fields: [workId], references: [id], onDelete: Cascade)
-
   parties   SplitParty[]
   shares    SplitShare[]
 
@@ -113,13 +76,10 @@ model SplitParty {
   id               String       @id @default(cuid())
   splitSheetId     String
   splitSheet       SplitSheet   @relation(fields: [splitSheetId], references: [id], onDelete: Cascade)
-
   userId           String?
   user             User?        @relation(fields: [userId], references: [id])
-
   externalName     String?
-  role             String       // "ARTIST" | "WRITER" | "PRODUCER" | etc.
-
+  role             String
   walletAddress    String?
   pro              String?
   ipiCae           String?
@@ -137,10 +97,8 @@ model SplitShare {
   id                 String      @id @default(cuid())
   splitSheetId       String
   splitSheet         SplitSheet  @relation(fields: [splitSheetId], references: [id], onDelete: Cascade)
-
   partyId            String
   party              SplitParty  @relation(fields: [partyId], references: [id], onDelete: Cascade)
-
   masterSharePct     Float       @default(0)
   publishingSharePct Float       @default(0)
   
@@ -152,8 +110,7 @@ model Earning {
   id            String        @id @default(cuid())
   workId        String
   work          Work          @relation(fields: [workId], references: [id], onDelete: Cascade)
-
-  type          EarningType
+  type          String        // MASTER or PUBLISHING
   source        String
   amountCents   Int
   currency      String        @default("USD")
@@ -168,7 +125,6 @@ model Balance {
   id             String        @id @default(cuid())
   userId         String
   user           User          @relation(fields: [userId], references: [id])
-
   currency       String        @default("USD")
   availableCents Int           @default(0)
   pendingCents   Int           @default(0)
@@ -184,16 +140,15 @@ model AdvanceAgreement {
   id                  String          @id @default(cuid())
   name                String
 
-  funderId            String?         // optional for now
+  funderId            String?
   borrowerId          String
   borrower            User            @relation(fields: [borrowerId], references: [id])
-
   advanceAmountCents  Int
-  recoupPercentage    Float           // 0–1
+  recoupPercentage    Float
   capAmountCents      Int?
   recoupedCents       Int             @default(0)
 
-  status              AdvanceStatus   @default(ACTIVE)
+  status              String          @default("ACTIVE")
 
   works               AdvanceWork[]
 
@@ -219,19 +174,17 @@ model PayoutPreference {
   id            String         @id @default(cuid())
   userId        String         @unique
   user          User           @relation(fields: [userId], references: [id])
-
-  payoutMethod  PayoutMethod
+  payoutMethod  String         // BANK, WALLET, or BOTH
   bankCustomerId String?
   bankAccountId  String?
   walletAddress  String?
 
-  payoutCadence PayoutCadence
+  payoutCadence String         // DAILY, WEEKLY, or MONTHLY
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
 
-// Vault Asset model
 model Asset {
   id              String    @id @default(cuid())
   ownerId         String
@@ -243,22 +196,18 @@ model Asset {
   mimeType        String?
   duration        Float?
   
-  // Audio metadata
   bpm             Int?
   key             String?
   genre           String?
-  moodTags        String?   // JSON array
+  moodTags        String?
   
-  // Asset categorization
-  assetType       String?   // BEAT, VOCAL, LOOP, etc.
-  productCategory String?   // For marketplace
+  assetType       String?
+  productCategory String?
   
-  // Status
   status          String    @default("IDEA")
   isForSale       Boolean   @default(false)
   price           Float?
   
-  // Relations
   analysis        AssetAnalysis?
   
   createdAt       DateTime  @default(now())
@@ -269,32 +218,27 @@ model Asset {
   @@index([status])
 }
 
-// AI-Powered Music Analysis
 model AssetAnalysis {
   id                  String    @id @default(cuid())
   assetId             String    @unique
   asset               Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
-
-  // Mansuba AI Analysis
-  instruments         String?   // JSON array of detected instruments
-  instrumentsRaw      String?   // Raw Mansuba output
-  instrumentPlotJson  String?   // JSON for instrument timeline plot
-  audioSummary        String?   // Natural language summary
-  aiInsight           String?   // AI-generated insights
-  viralityPlotJson    String?   // JSON for virality score plot
-
-  // Cyanite Analysis
+  
+  instruments         String?
+  instrumentsRaw      String?
+  instrumentPlotJson  String?
+  audioSummary        String?
+  aiInsight           String?
+  viralityPlotJson    String?
+  
   cyaniteMood         String?
-  cyaniteGenres       String?   // JSON array
+  cyaniteGenres       String?
   cyaniteBpm          Int?
   cyaniteKey          String?
-  cyaniteTags         String?   // JSON array
-
-  // Processing status
-  status              String    @default("PENDING") // PENDING | PROCESSING | COMPLETE | FAILED
+  cyaniteTags         String?
+  
+  status              String    @default("PENDING")
   errorMessage        String?
   
-  // Retry tracking
   retryCount          Int       @default(0)
   lastRetryAt         DateTime?
 
