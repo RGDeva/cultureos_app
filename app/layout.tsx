@@ -7,6 +7,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif' });
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: 'NoCulture OS',
   description: 'Not a Label. A Launch System.',
