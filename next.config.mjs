@@ -15,11 +15,8 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-  // Disable all static optimization to prevent build errors
+  // Use standalone for Vercel
   output: 'standalone',
-  generateBuildId: async () => {
-    return 'build-' + Date.now()
-  },
   // Prevent webpack from trying to bundle server-only modules
   webpack: (config, { isServer }) => {
     if (!isServer) {
