@@ -28,3 +28,4 @@ public/uploads/
 # typescript
 *.tsbuild.info
 next-env.d.ts
+.env*.local

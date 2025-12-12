@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { profileStore } from '@/lib/profileStore'
+import { getProfileByUserId, upsertProfile } from '@/lib/profileStore'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current profile
-    const profile = profileStore.get(userId)
+    const profile = getProfileByUserId(userId)
     if (!profile) {
       return NextResponse.json(
         { error: 'Profile not found' },
@@ -23,14 +23,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Add credit to profile
-    const musoCredits = profile.musoCredits || []
+    const musoCredits = (profile as any).musoCredits || []
     musoCredits.push({
       id: `credit-${Date.now()}`,
       ...credit,
     })
 
     // Update profile
-    profileStore.update(userId, { musoCredits })
+    upsertProfile(userId, { musoCredits } as any)
 
     return NextResponse.json({
       message: 'Muso credit added successfully',
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const profile = profileStore.get(userId)
+    const profile = getProfileByUserId(userId)
     if (!profile) {
       return NextResponse.json(
         { error: 'Profile not found' },
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      musoCredits: profile.musoCredits || [],
+      musoCredits: (profile as any).musoCredits || [],
     })
   } catch (error) {
     console.error('[MUSO_CREDITS] Error:', error)
@@ -89,7 +89,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const profile = profileStore.get(userId)
+    const profile = getProfileByUserId(userId)
     if (!profile) {
       return NextResponse.json(
         { error: 'Profile not found' },
@@ -98,11 +98,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove credit
-    const musoCredits = (profile.musoCredits || []).filter(
-      (credit) => credit.id !== creditId
+    const musoCredits = ((profile as any).musoCredits || []).filter(
+      (credit: any) => credit.id !== creditId
     )
 
-    profileStore.update(userId, { musoCredits })
+    upsertProfile(userId, { musoCredits } as any)
 
     return NextResponse.json({
       message: 'Muso credit removed successfully',
