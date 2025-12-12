@@ -1,5 +1,8 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { WorkDetails } from '@/components/works/WorkDetails'

@@ -1,5 +1,8 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { VaultsTerminal } from "@/components/vaults-terminal"
 import { MatrixBackground } from "@/components/matrix-background"
 import { Button } from "@/components/ui/button"

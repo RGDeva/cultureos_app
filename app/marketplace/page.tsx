@@ -1,5 +1,8 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useState, useEffect, useRef } from "react"
 import { usePrivy } from "@privy-io/react-auth"
 import { Product, CheckoutResponse, ProductType, ProductCategory } from "@/types/marketplace"

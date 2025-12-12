@@ -10,7 +10,8 @@ const nextConfig = {
     unoptimized: true,
     domains: ['source.unsplash.com', 'i.pravatar.cc'],
   },
-  reactStrictMode: true,
+  reactStrictMode: false,
+  swcMinify: true,
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
@@ -18,6 +19,19 @@ const nextConfig = {
   output: 'standalone',
   generateBuildId: async () => {
     return 'build-' + Date.now()
+  },
+  // Prevent webpack from trying to bundle server-only modules
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      }
+    }
+    return config
   },
 }
 
