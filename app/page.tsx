@@ -11,6 +11,9 @@ import { TerminalText } from "@/components/ui/terminal-text"
 import { Profile } from "@/types/profile"
 import { needsOnboarding } from "@/lib/profileStore"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // Loading component
 const LoadingBox = () => (
   <div className="border-2 dark:border-green-400/30 border-gray-300 p-6 animate-pulse">
